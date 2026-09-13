@@ -43,6 +43,8 @@ export const TownMap: React.FC<TownMapProps> = ({
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const touchStartDistRef = useRef<number | null>(null);
+  const touchStartZoomRef = useRef<number>(zoom);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const isLargeMap = activeDistrictIds.includes('G') || activeDistrictIds.includes('H');
@@ -100,6 +102,44 @@ export const TownMap: React.FC<TownMapProps> = ({
     }
 
     return { valid: true };
+  };
+
+  // Touch pan & pinch-zoom controls
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.touches[0].clientX - pan.x, y: e.touches[0].clientY - pan.y });
+    } else if (e.touches.length === 2) {
+      setIsDragging(false);
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      touchStartDistRef.current = dist;
+      touchStartZoomRef.current = zoom;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 1 && isDragging) {
+      setPan({
+        x: e.touches[0].clientX - dragStart.x,
+        y: e.touches[0].clientY - dragStart.y,
+      });
+    } else if (e.touches.length === 2 && touchStartDistRef.current !== null) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const factor = dist / touchStartDistRef.current;
+      const newZoom = Math.min(2.5, Math.max(0.45, touchStartZoomRef.current * factor));
+      setZoom(newZoom);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    touchStartDistRef.current = null;
   };
 
   // Mouse pan controls
@@ -421,6 +461,9 @@ export const TownMap: React.FC<TownMapProps> = ({
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
       onWheel={handleWheel}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       className="absolute inset-0 w-full h-full bg-[#0a0e13] overflow-hidden select-none cursor-grab active:cursor-grabbing"
     >
       {/* Living Town Board Canvas */}
