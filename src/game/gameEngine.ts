@@ -93,11 +93,13 @@ export function getYearlyLandDraftQuota(
 // Get number of shop tiles distributed per player each year based on player count
 export function getShopTilesPerPlayerPerYear(playerCount: number): number {
   if (playerCount <= 4) {
-    return 3;
-  } else if (playerCount <= 6) {
     return 5;
-  } else {
+  } else if (playerCount <= 6) {
+    return 6;
+  } else if (playerCount === 7) {
     return 7;
+  } else {
+    return 8;
   }
 }
 
