@@ -1,0 +1,6 @@
+{
+  "name": "Xizhi Town",
+  "description": "Online multiplayer negotiation board game revolving around land, business tiles, money, and deals.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
